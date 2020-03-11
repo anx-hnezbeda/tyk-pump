@@ -1,0 +1,43 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    services:
+      mongodb:
+        image: mongo:3.4.23
+        ports:
+          - 27017:27017
+          
+    strategy:
+      matrix:
+        go-version: [1.11.x, ]
+        platform: [ubuntu-latest, ]
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Checkout code
+      uses: actions/checkout@v2
+    
+    # Install dependencies 
+    - run: mkdir -p ~/go/src/
+    - run: cp -r ./vendor/. ~/go/src/
+    - run: go get -t -d -v ./...
+    - run: rm -r ~/go/src/github.com/TykTechnologies/tyk-pump/vendor
+    
+    # Run test and build
+    - run: go test -v ./...
+    - run: go build -v
+
+    - name: Upload Build
+      uses: actions/upload-artifact@v1
+      with:
+        name: tyk-pump-build
+        path: ./tyk-pump
