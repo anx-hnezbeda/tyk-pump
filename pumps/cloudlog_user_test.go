@@ -2,13 +2,14 @@ package pumps
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
 	"github.com/TykTechnologies/tyk-pump/analytics"
 )
 
-func CreateCloudLogRecord(path string, tags []string) analytics.AnalyticsRecord {
+func CreateCloudLogUserRecord(path string, tags []string) analytics.AnalyticsRecord {
 	a := analytics.AnalyticsRecord{}
 	a.Method = "POST"
 	a.Path = path
@@ -36,7 +37,7 @@ func CreateCloudLogRecord(path string, tags []string) analytics.AnalyticsRecord 
 	return a
 }
 
-func TestCloudLogPump(t *testing.T) {
+func TestCloudLogUserPump(t *testing.T) {
 	t.Skip("Set the tCloudLogUrl, tCloudToken and remove Skip to test.")
 
 	tCloudLogUrl := "XXX"
@@ -47,7 +48,7 @@ func TestCloudLogPump(t *testing.T) {
 	tConf["token"] = tCloudToken
 	tConf["environment"] = "Testing"
 
-	s := CloudLogPump{}
+	s := CloudLogUserPump{}
 
 	err := s.Init(tConf)
 	if err != nil {
@@ -56,7 +57,7 @@ func TestCloudLogPump(t *testing.T) {
 
 	tData := make([]interface{}, 2)
 	tData[0] = CreateCloudLogRecord("/path1", []string{"tag-1", "tag-2"})
-	tData[1] = CreateCloudLogRecord("/path2", []string{"tag-1", "tag-2"})
+	tData[1] = CreateCloudLogRecord("/path2", []string{"tag-1", "tag-2", fmt.Sprintf("cloudlog::%s::%s", tCloudLogUrl, tCloudToken)})
 
 	go s.WriteData(context.TODO(), tData)
 
