@@ -17,28 +17,44 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
 
+    env:
+      GOPATH: ${{ github.workspace }}
+
     steps:
     - name: Install Go
       uses: actions/setup-go@v1
       with:
         go-version: ${{ matrix.go-version }}
 
-    - name: Checkout code
-      uses: actions/checkout@v2
-    
-    # Install dependencies 
-    - run: mkdir -p ~/go/src/
-    - run: cp -r ./vendor/. ~/go/src/
-    - run: go get -t -d -v ./...
-    - run: rm -r ~/go/src/github.com/TykTechnologies/tyk-pump/vendor
-    - run: rm -r ~/go/src/github.com/anx-hnezbeda/tyk-pump/vendor
-    
-    # Run test and build
-    - run: go test -v ./...
-    - run: go build -v
+    - name: Get tyk pump from source repository
+      run: go get github.com/TykTechnologies/tyk-pump/
+
+    - name: Add current repository as fork remote
+      run: git remote add fork https://github.com/${{ github.repository }}.git
+      working-directory: ./src/github.com/TykTechnologies/tyk-pump/
+
+    - name: Fetch source from fork remote
+      run: git fetch fork
+      working-directory: ./src/github.com/TykTechnologies/tyk-pump/
+
+    - name: Checkout fork branch
+      run: git checkout fork/${GITHUB_REF##*/}
+      working-directory: ./src/github.com/TykTechnologies/tyk-pump/
+
+    - name: Install dependencies
+      run: go get -t -d -v ./...
+      working-directory: ./src/github.com/TykTechnologies/tyk-pump/
+
+    - name: Run tests
+      run: go test -v ./...
+      working-directory: ./src/github.com/TykTechnologies/tyk-pump/
+
+    - name: Run build
+      run: go build -v
+      working-directory: ./src/github.com/TykTechnologies/tyk-pump/
 
     - name: Upload Build
       uses: actions/upload-artifact@v1
       with:
         name: tyk-pump-build
-        path: ./tyk-pump
+        path: ./src/github.com/TykTechnologies/tyk-pump/tyk-pump
