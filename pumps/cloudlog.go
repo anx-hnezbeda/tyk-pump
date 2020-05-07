@@ -25,6 +25,35 @@ type CloudLogPump struct {
 	timeout int
 }
 
+func CloudLogPushData(data []byte, clUrl string, clToken string, prefix string) error {
+	req, err := http.NewRequest("POST", clUrl, bytes.NewBuffer(data))
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"prefix": prefix,
+		}).Error("Cannot create new request.", err.Error())
+
+		return err
+	}
+	req.Header.Set("Authorization", clToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.WithFields(logrus.Fields{
+			"prefix": prefix,
+		}).Error("Cannot post data.", err.Error())
+
+		return err
+	}
+	defer resp.Body.Close()
+
+	log.WithFields(logrus.Fields{
+		"prefix": prefix,
+	}).Info("CloudLog request responded with a ", resp.StatusCode, " status code")
+
+	return nil
+}
+
 func (p *CloudLogPump) New() Pump {
 	return &CloudLogPump{}
 }
@@ -44,36 +73,7 @@ func (p *CloudLogPump) Init(conf interface{}) error {
 
 	log.WithFields(logrus.Fields{
 		"prefix": cloudLogPumpPrefix,
-	}).Infof("Initializing CloudLog")
-
-	return nil
-}
-
-func (p *CloudLogPump) LogData(data []byte) error {
-	req, err := http.NewRequest("POST", p.clConf.URL, bytes.NewBuffer(data))
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"prefix": cloudLogPumpPrefix,
-		}).Error("Cannot create new request.", err.Error())
-
-		return err
-	}
-	req.Header.Set("Authorization", p.clConf.Token)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.WithFields(logrus.Fields{
-			"prefix": cloudLogPumpPrefix,
-		}).Error("Cannot post data.", err.Error())
-
-		return err
-	}
-	defer resp.Body.Close()
-
-	log.WithFields(logrus.Fields{
-		"prefix": cloudLogPumpPrefix,
-	}).Info("CloudLog request responded with a ", resp.StatusCode, " status code")
+	}).Infof("Initializing CloudLog Pump")
 
 	return nil
 }
@@ -113,10 +113,10 @@ func (p *CloudLogPump) WriteData(ctx context.Context, data []interface{}) error 
 			"year":            decoded.Year,
 			"hour":            decoded.Hour,
 			"content_length":  decoded.ContentLength,
+			"tags":            decoded.Tags,
 			//Geo           GeoData
 			//Network       NetworkStats
 			//Latency       Latency
-			//Tags          []string
 			//Alias         string
 		}
 		mapping["records"] = append(mapping["records"], mappedItem)
@@ -127,7 +127,7 @@ func (p *CloudLogPump) WriteData(ctx context.Context, data []interface{}) error 
 		return fmt.Errorf("failed to marshal decoded data: %s", err)
 	}
 
-	if p.LogData(event) != nil {
+	if CloudLogPushData(event, p.clConf.URL, p.clConf.Token, cloudLogPumpPrefix) != nil {
 		log.WithFields(logrus.Fields{
 			"prefix": cloudLogPumpPrefix,
 		}).Error("Cannot log data to cloudlog.")

@@ -28,4 +28,5 @@ func init() {
 	AvailablePumps["kafka"] = &KafkaPump{}
 	AvailablePumps["syslog"] = &SyslogPump{}
 	AvailablePumps["cloudlog"] = &CloudLogPump{}
+	AvailablePumps["cloudlog"] = &CloudLogUserPump{}
 }
