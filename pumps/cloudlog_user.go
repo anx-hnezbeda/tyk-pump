@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var cloudLogUserPumpPrefix = "cloudlog-user-pump"
+var cloudLogUserPumpPrefix = "cloudloguser-pump"
 
 type CloudLogUserPumpConfig struct {
 	Environment    string `mapstructure:"environment"`
