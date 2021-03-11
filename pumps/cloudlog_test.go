@@ -54,9 +54,10 @@ func TestCloudLogPump(t *testing.T) {
 		t.Error(err)
 	}
 
-	tData := make([]interface{}, 2)
+	tData := make([]interface{}, 3)
 	tData[0] = CreateCloudLogRecord("/path1", []string{"tag-1", "tag-2"})
 	tData[1] = CreateCloudLogRecord("/path2", []string{"tag-1", "tag-2"})
+	tData[2] = CreateCloudLogRecord("/path3", []string{"cloudlog::api_identifier::1234"})
 
 	go s.WriteData(context.TODO(), tData)
 
