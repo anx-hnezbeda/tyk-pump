@@ -9,6 +9,7 @@ import (
 	"github.com/TykTechnologies/tyk-pump/analytics"
 	"github.com/mitchellh/mapstructure"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -119,6 +120,7 @@ func (p *CloudLogPump) WriteData(ctx context.Context, data []interface{}) error 
 			//Latency       Latency
 			//Alias         string
 		}
+		p.addCloudLogKeys(decoded.Tags, mappedItem)
 		mapping["records"] = append(mapping["records"], mappedItem)
 	}
 
@@ -142,4 +144,13 @@ func (p *CloudLogPump) SetTimeout(timeout int) {
 
 func (p *CloudLogPump) GetTimeout() int {
 	return p.timeout
+}
+
+func (p *CloudLogPump) addCloudLogKeys(tags []string, mappedItem map[string]interface{}) {
+	for _, s := range tags {
+		conf := strings.Split(s, "::")
+		if len(conf) == 3 && conf[0] == "cloudlog" {
+			mappedItem[conf[1]] = conf[2]
+		}
+	}
 }
