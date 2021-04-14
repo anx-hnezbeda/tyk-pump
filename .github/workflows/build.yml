@@ -9,7 +9,11 @@ jobs:
         image: mongo:3.4.23
         ports:
           - 27017:27017
-          
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
     strategy:
       matrix:
         go-version: [1.11.x, ]
@@ -19,6 +23,7 @@ jobs:
 
     env:
       GOPATH: ${{ github.workspace }}
+      GO111MODULE: on
 
     steps:
     - name: Install Go
@@ -27,7 +32,10 @@ jobs:
         go-version: ${{ matrix.go-version }}
 
     - name: Get tyk pump from source repository
-      run: go get github.com/TykTechnologies/tyk-pump/
+      uses: actions/checkout@v2
+      with:
+        repository: TykTechnologies/tyk-pump
+        path: './src/github.com/TykTechnologies/tyk-pump/'
 
     - name: Add current repository as fork remote
       run: git remote add fork https://github.com/${{ github.repository }}.git
@@ -42,7 +50,7 @@ jobs:
       working-directory: ./src/github.com/TykTechnologies/tyk-pump/
 
     - name: Install dependencies
-      run: go get -t -d -v ./...
+      run: go get golang.org/x/tools/cmd/goimports && go get
       working-directory: ./src/github.com/TykTechnologies/tyk-pump/
 
     - name: Run tests
