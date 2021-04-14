@@ -149,7 +149,7 @@ func (p *CloudLogPump) GetTimeout() int {
 func (p *CloudLogPump) addCloudLogKeys(tags []string, mappedItem map[string]interface{}) {
 	for _, s := range tags {
 		conf := strings.Split(s, "::")
-		if len(conf) == 3 && conf[0] == "cloudlog" {
+		if len(conf) == 3 && conf[0] == "engine-cloudlog" {
 			mappedItem[conf[1]] = conf[2]
 		}
 	}
