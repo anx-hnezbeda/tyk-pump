@@ -19,6 +19,7 @@ type CloudLogUserPumpConfig struct {
 type CloudLogUserPump struct {
 	clConf  *CloudLogUserPumpConfig
 	timeout int
+	CommonPumpConfig
 }
 
 func (p *CloudLogUserPump) New() Pump {

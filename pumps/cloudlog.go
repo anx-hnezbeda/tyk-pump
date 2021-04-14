@@ -24,6 +24,7 @@ type CloudLogPumpConfig struct {
 type CloudLogPump struct {
 	clConf  *CloudLogPumpConfig
 	timeout int
+	CommonPumpConfig
 }
 
 func CloudLogPushData(data []byte, clUrl string, clToken string, prefix string) error {
